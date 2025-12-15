@@ -14,7 +14,8 @@ class Player:
         self.Current_Room = ("Start_Room", "The area around is covered in a heavy mist. It's hard to see anything too far ahead.")
         self.Last_Room = None
         self.North_Room = None; self.East_Room = None; self.South_Room = None; self.West_Room = None
-        self.Room_Map = (self.North_Room, self.East_Room, self.South_Room, self.West_Room)
+        self.Room_Map = [self.North_Room, self.East_Room, self.South_Room, self.West_Room]
+        self.Compass = {"North" : 0, "East" : 1, "South" : 2, "West" : 3}
         self.Golden_Feather = 0
         self.Items = []
         self.Easy_Rooms = [("Soft_Medow", "The area here is very calming, nothing seems to make any nose in respect to the land."),
@@ -27,14 +28,16 @@ class Player:
     ("River_Side", "There is a stream here. The water looks clean, but drinking it might not be a good idea."),
     ("Single_Tree", "Through the mist there is a single tree standing tall. If it wasn't for the mist it would be a nice place to take a nap."),
     ("Dense_Mist", "The mist is so thick here that no one would be able to see even a meter ahead. Could any animal even live here?")]
-        self.Mid_Rooms = [("Lake_Side", "There is a large lake ahead. The water has a black colored patten comming from the center. What's in there?"),
+        self.Mid_Rooms = [("Lake_Side", "There is a large lake ahead. The water has a black colored patten comming from further in the water. What's in there?"),
     ("Cave_Opening", "There is a cliff with a cave opening ahead. There are huge spider webs within the cave, how would spiders spin webs so large?"),
     ("Geyser_Mine", "Every so often jets of steam erupt from the ground. It's dangerous to stay here, but this place might explain the ever present mist.")]
         self.Hard_Rooms = [("Lake_Center", "The waters depth seems to know no end. The mist is so heavy here even the darkness of the water is hard to see."),
     ("Spider_Cave", "The mist continues to grow thicker further into the cave. The mist has perfectly covered all signs of the webs, and the bones on the ground only make it harder to progress."),
     ("Magma_Lake", "The temprature rises to an unbearable point. The mist and heat combined make it imposible to see anything ahead reliably.")]
-        self.End_Rooms = [("End_Room_1", "What is this place? Why is everything white here? What happend to the mist?"), ("End_Room_2", "Why? Why did you create this twisted place, \"Player\"? Does seeing the suffering of others cause you joy?")]
+        self.End_Rooms = [("End_Room_1", "What is this place? Why is everything white here? What happend to the mist?"), ("End_Room_2", "Why? Why did you help create this twisted place, \"Player\"? Does seeing the suffering of others cause you joy?")]
     def Process_Input(self):
+        self.Next_Rooms()
+        print(self.Current_Room[1])
         self.Input = input().capitalize()
         if self.Input == "Help":
             self.Help()
@@ -44,29 +47,43 @@ class Player:
             self.Reset()
         elif self.Input == "I":
             for i in range(len(self.Items)):
-                print(i)
-        elif self.Input == "N" or self.Input == "North":
-            self.Direction = "North"
-            #Maybe give information about this direction here?
-            self.Input = input("Is going this direction the best desision?").capitalize()
-            #Check if realy want to go this way
-            if (self.Input == "N" or self.Input == "North"):
+                print(self.Items[i])
+        self.Move("N", "North")
+        self.Move("E", "East")
+        self.Move("S", "South")
+        self.Move("W", "West")
+    def Random_Event(self):
+        pass
+    def Next_Rooms(self):
+        for i in range(len(self.Room_Map)):
+            self.Room_Map[i] = random.choice(self.Easy_Rooms) ## Works - the rest does not, why?
+        if self.Number_Of_Same_Direction == 3:
+            for i in self.Compass:
+                if self.Compass[self.Direction] == i:
+                    self.Room_Map[i] = self.End_Rooms[0]
+
+        elif self.Number_Of_Same_Direction == 2:
+            for i in self.Compass:
+                if self.Compass[self.Direction] == i:
+                    self.Room_Map[i] = random.choice(self.Hard_Rooms)
+
+        elif self.Number_Of_Same_Direction == 1:
+            for i in self.Compass: # i becomes the numbers 0 to 3
+                if self.Compass[self.Direction] == i:
+                    self.Room_Map[i] = random.choice(self.Mid_Rooms)
+    def Move(self, DirectionLetter, Direction):
+        if self.Input == DirectionLetter or self.Input == Direction:
+            self.Direction = Direction
+            self.Input = input("Is going this direction the best desision? ").capitalize() #Check if realy want to go this way
+            if (self.Input == "Y" or self.Input == "Yes"):
                 if self.Direction == self.Last_Direction:
                     self.Number_Of_Same_Direction += 1
+                else:
+                    self.Number_Of_Same_Direction = 0
                 self.Last_Direction = self.Direction
-    def Next_Rooms(self):
-        for i in self.Room_Map:
-            if self.Number_Of_Same_Direction == 0:
-                self.Room_Map[i] = random.choice(self.Easy_Rooms)
-        if self.Number_Of_Same_Direction == 3:
-            if self.Last_Direction == "North":
-                self.Room_Map[0] = self.End_Rooms[0]
-            elif self.Last_Direction == "East":
-                self.Room_Map[1] = self.End_Rooms[1]
-            elif self.Last_Direction == "South":
-                self.Room_Map[2] = self.End_Rooms[2]
-            elif self.Last_Direction == "West":
-                self.Room_Map[3] = self.End_Rooms[3]
+                self.Current_Room = self.Room_Map[self.Compass[Direction]]
+            else:
+                return
     def Reset(self):
         self.HP = 50
         self.Direction = None
